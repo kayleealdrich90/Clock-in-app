@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#cdbcf0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Crew Clock-In 🌲</title>
+<style>
+  :root{
+    --lav:#d9c7f2; --lav-deep:#5b2d8e; --lav-soft:#efe6fb;
+    --pink:#ffd9e9; --mint:#cdeeda; --blue:#cfe4ff; --peach:#ffe2c4;
+    --ink:#3a2b55; --ink-soft:#6b5a8e; --card:#ffffffd9;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:var(--ink);
+    background:linear-gradient(160deg,#ffe9f3 0%,#e9defc 45%,#d7f2e3 100%);
+    min-height:100vh; padding:14px 14px 48px;
+  }
+  h1{font-size:26px; margin:6px 0 2px; text-align:center;}
+  .sub{text-align:center; color:var(--ink-soft); font-size:14px; margin-bottom:14px;}
+  .tabs{display:flex; gap:10px; margin-bottom:14px;}
+  .tab{
+    flex:1; text-align:center; padding:12px; border-radius:16px; font-size:16px; font-weight:700;
+    background:var(--lav-soft); color:var(--ink); border:2px solid transparent; cursor:pointer;
+  }
+  .tab.on{background:var(--lav-deep); color:#fff;}
+  .card{
+    background:var(--card); border-radius:20px; padding:16px; margin-bottom:14px;
+    box-shadow:0 4px 14px #5b2d8e14;
+  }
+  .card h2{font-size:17px; margin:0 0 10px;}
+  label{display:block; font-size:14px; font-weight:600; margin:10px 0 6px; color:var(--ink-soft);}
+  input[type=text],input[type=number]{
+    width:100%; padding:14px; font-size:17px; border-radius:14px;
+    border:2px solid var(--lav); background:#fff; color:var(--ink);
+  }
+  input:focus{outline:none; border-color:var(--lav-deep);}
+  .chips{display:flex; flex-wrap:wrap; gap:10px;}
+  .chip{
+    padding:13px 18px; border-radius:999px; font-size:16px; font-weight:600;
+    background:var(--lav); color:var(--ink); border:2px solid transparent; cursor:pointer;
+    user-select:none;
+  }
+  .chip.on{background:var(--lav-deep); color:#fff;}
+  .bigbtn{
+    width:100%; padding:20px; font-size:22px; font-weight:800; border:none; border-radius:20px;
+    cursor:pointer; margin-top:6px; color:var(--ink);
+  }
+  .btn-go{background:var(--mint);}
+  .btn-stop{background:var(--peach);}
+  .btn-blue{background:var(--blue);}
+  .acrebtn{
+    display:block; width:100%; text-align:left; padding:18px; margin-bottom:10px;
+    font-size:18px; font-weight:700; border-radius:18px; cursor:pointer;
+    background:var(--lav); color:var(--ink); border:2px solid transparent;
+  }
+  .acrebtn .val{display:block; font-size:15px; font-weight:600; color:var(--ink-soft); margin-top:4px;}
+  .acrebtn.new{background:var(--lav-soft); border:2px dashed var(--lav-deep); text-align:center;}
+  .status{
+    text-align:center; padding:14px; border-radius:16px; font-size:17px; font-weight:700;
+    margin-bottom:14px; background:var(--mint);
+  }
+  .sendbtn{
+    width:100%; padding:18px; font-size:19px; font-weight:800; border:none; border-radius:20px;
+    background:var(--blue); color:var(--ink); cursor:pointer; margin-top:4px;
+  }
+  .entry{
+    background:#fff; border-radius:14px; padding:12px 14px; margin-bottom:10px; font-size:15px;
+    border-left:6px solid var(--lav-deep);
+  }
+  .entry b{font-size:16px;}
+  .entry .meta{color:var(--ink-soft); font-size:14px; margin-top:4px;}
+  .sawrow{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .sawrow input{flex:1;}
+  .delbtn{
+    background:#ffd9d9; border:none; border-radius:12px; padding:12px 14px;
+    font-size:16px; cursor:pointer; color:#8e2d2d; font-weight:700;
+  }
+  .addrow{display:flex; gap:10px; margin-top:8px;}
+  .addbtn{
+    background:var(--lav-deep); color:#fff; border:none; border-radius:14px;
+    padding:14px 18px; font-size:16px; font-weight:700; cursor:pointer;
+  }
+  .danger{
+    width:100%; padding:14px; margin-top:14px; border:none; border-radius:14px;
+    background:#ffd9d9; color:#8e2d2d; font-weight:700; font-size:15px; cursor:pointer;
+  }
+  .hidden{display:none !important;}
+  .hint{font-size:13px; color:var(--ink-soft); text-align:center; margin-top:10px; line-height:1.5;}
+  .dayhead{font-size:15px; font-weight:800; margin:14px 0 8px; color:var(--lav-deep);}
+  .linklike{background:none;border:none;color:var(--lav-deep);font-size:14px;text-decoration:underline;cursor:pointer;padding:8px;}
+  textarea{
+    width:100%; padding:14px; font-size:16px; border-radius:14px;
+    border:2px solid var(--lav); background:#fff; color:var(--ink); font-family:inherit;
+  }
+  .whoami{text-align:center; font-size:14px; color:var(--ink-soft); margin-bottom:10px;}
+  .loc{font-size:13px; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<h1>🌲 Crew Clock-In</h1>
+<div class="sub">stupid simple, works offline</div>
+
+<div class="tabs">
+  <div class="tab on" id="tabCrew">Crew</div>
+  <div class="tab" id="tabBoss">Boss Setup</div>
+</div>
+
+<!-- ============ CREW VIEW ============ -->
+<div id="viewCrew">
+
+  <!-- LOGIN -->
+  <div id="scrLogin" class="hidden">
+    <div class="card">
+      <h2>Who's this? 🌲</h2>
+      <label>Your name</label>
+      <input type="text" id="loginName" placeholder="e.g. Sheldon" autocomplete="off">
+      <button class="bigbtn btn-go" id="btnLogin" style="margin-top:14px;">Save — remember me</button>
+      <div class="hint">Just once. This phone will remember you.</div>
+    </div>
+  </div>
+
+  <!-- ACRE PICKER -->
+  <div id="scrAcres" class="hidden">
+    <div class="whoami" id="whoamiAcres"></div>
+    <div class="card">
+      <h2>Pick your acre</h2>
+      <div id="acreList"></div>
+      <div id="newAcreForm" class="hidden">
+        <label>Acre name</label>
+        <input type="text" id="newAcreName" placeholder="e.g. Hot Brook Canyon, acre #9" autocomplete="off">
+        <label>What it's worth $</label>
+        <input type="number" id="newAcreValue" placeholder="e.g. 750" inputmode="decimal">
+        <button class="bigbtn btn-blue" id="btnSaveAcre" style="font-size:18px; margin-top:12px;">Save acre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOCK IN -->
+  <div id="scrClockIn" class="hidden">
+    <div class="whoami" id="whoamiIn"></div>
+    <div class="card">
+      <h2 id="clockInAcre">Acre</h2>
+      <h2 style="margin-top:14px;">Which saw are you using?</h2>
+      <div class="chips" id="sawChips"></div>
+    </div>
+    <div class="card">
+      <h2>Did you take one of the Boss's Dolmars?</h2>
+      <div class="chips">
+        <div class="chip" id="dolmarYes">Yes</div>
+        <div class="chip" id="dolmarNo">No</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Notes <span style="font-weight:400; font-size:14px;">(optional)</span></h2>
+      <textarea id="inNotes" rows="2" placeholder="Anything worth noting…"></textarea>
+    </div>
+    <button class="bigbtn btn-go" id="btnIn">🟢 CLOCK IN</button>
+    <div class="hint">Time is stamped automatically when you tap.</div>
+  </div>
+
+  <!-- CLOCKED IN CONFIRMATION -->
+  <div id="scrClockedIn" class="hidden">
+    <div class="status" id="inConfirm"></div>
+    <div class="card">
+      <h2>You're on the clock 🌲</h2>
+      <div id="inDetails" class="meta" style="font-size:15px; line-height:1.7;"></div>
+    </div>
+    <button class="sendbtn" id="btnSend1">📤 Send day to Kaylee</button>
+    <div class="hint">Next time you open the app, it'll take you straight to clock out.</div>
+  </div>
+
+  <!-- CLOCK OUT -->
+  <div id="scrClockOut" class="hidden">
+    <div class="whoami" id="whoamiOut"></div>
+    <div class="card">
+      <h2 id="outAcre">Acre</h2>
+      <div class="meta" id="outSince" style="font-size:15px; margin-top:6px;"></div>
+    </div>
+    <div class="card">
+      <h2>Anything break?</h2>
+      <div class="chips">
+        <div class="chip" id="brokeYes">Yes</div>
+        <div class="chip" id="brokeNo">No</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Additional notes <span style="font-weight:400; font-size:14px;">(optional)</span></h2>
+      <textarea id="outNotes" rows="2" placeholder="e.g. bar tip cracked on the 461"></textarea>
+    </div>
+    <button class="bigbtn btn-stop" id="btnOut">🔴 CLOCK OUT</button>
+    <div class="hint">Time is stamped automatically when you tap.</div>
+  </div>
+
+</div>
+
+<!-- ============ BOSS VIEW ============ -->
+<div id="viewBoss" class="hidden">
+
+  <div class="card" id="bossLock">
+    <h2>🔒 Boss area</h2>
+    <div id="lockMsg" style="margin-bottom:10px; color:var(--ink-soft); font-size:15px;"></div>
+    <input type="password" id="pinInput" inputmode="numeric" placeholder="PIN" autocomplete="off">
+    <button class="bigbtn btn-blue" id="btnPin" style="font-size:18px; margin-top:12px;">Unlock</button>
+  </div>
+
+  <div id="bossContent" class="hidden">
+
+  <div class="card">
+    <h2>This phone is logged in as</h2>
+    <div style="font-size:18px; font-weight:700;" id="bossWho"></div>
+    <button class="linklike" id="btnSwitch">Switch user</button>
+  </div>
+
+  <div class="card">
+    <h2>Acres</h2>
+    <div id="bossAcres"></div>
+  </div>
+
+  <div class="card">
+    <h2>Chainsaw list</h2>
+    <div id="sawList"></div>
+    <div class="addrow">
+      <input type="text" id="newSaw" placeholder="Add a saw…" autocomplete="off">
+      <button class="addbtn" id="btnAddSaw">Add</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>All entries</h2>
+    <div id="allList"></div>
+    <button class="sendbtn" id="btnSend2">📤 Send day to Kaylee</button>
+    <button class="danger" id="btnClear">Delete all entries</button>
+    <button class="linklike" id="btnLock" style="display:block; width:100%; text-align:center;">🔒 Lock boss area</button>
+  </div>
+
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var LS_KEY = "crewClockIn_v2";
+
+  function load(){
+    try{
+      var s = JSON.parse(localStorage.getItem(LS_KEY));
+      if(s && s.v === 2) return s;
+    }catch(e){}
+    return { v:2, user:null, bossPin:null,
+      acres:[
+        {id:"seed1", name:"Hanson's: acre #3", value:"400"},
+        {id:"seed2", name:"Hot Brook Canyon, acre #8", value:"750"}
+      ],
+      saws:["Stihl MS 461","Husqvarna 572 XP","Dolmar 6400","Saw 4"],
+      active:null, entries:[] };
+  }
+  function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+
+  var state = load();
+  var curAcre = null, selSaw = null, selDolmar = null, selBroke = null;
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function todayStr(d){
+    d = d || new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  function fmtTime(ts){
+    var d = new Date(ts), h = d.getHours(), m = String(d.getMinutes()).padStart(2,"0");
+    var ap = h >= 12 ? "PM" : "AM"; h = h % 12; if(h === 0) h = 12;
+    return h + ":" + m + " " + ap;
+  }
+  function fmtDay(ds){
+    var p = ds.split("-"); var d = new Date(+p[0], +p[1]-1, +p[2]);
+    return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  }
+  function locStr(l){
+    return l ? ("📍 " + l.lat + "," + l.lng) : "";
+  }
+
+  // GPS: grab when available (phone GPS often works even with no bars)
+  function getLoc(cb){
+    if(!navigator.geolocation){ cb(null); return; }
+    var done = false;
+    var t = setTimeout(function(){ if(!done){ done = true; cb(null); } }, 8000);
+    try{
+      navigator.geolocation.getCurrentPosition(function(p){
+        if(done) return; done = true; clearTimeout(t);
+        cb({lat:+p.coords.latitude.toFixed(6), lng:+p.coords.longitude.toFixed(6)});
+      }, function(){
+        if(done) return; done = true; clearTimeout(t); cb(null);
+      }, {enableHighAccuracy:true, timeout:7000, maximumAge:60000});
+    }catch(e){ if(!done){ done = true; clearTimeout(t); cb(null); } }
+  }
+
+  // ---- tabs ----
+  $("tabCrew").onclick = function(){ showTab("Crew"); };
+  $("tabBoss").onclick = function(){ showTab("Boss"); };
+  function showTab(which){
+    var crew = which === "Crew";
+    $("viewCrew").classList.toggle("hidden", !crew);
+    $("viewBoss").classList.toggle("hidden", crew);
+    $("tabCrew").classList.toggle("on", crew);
+    $("tabBoss").classList.toggle("on", !crew);
+    if(!crew) showLock();
+  }
+
+  // ---- boss PIN lock ----
+  function showLock(){
+    $("bossContent").classList.add("hidden");
+    $("bossLock").classList.remove("hidden");
+    $("pinInput").value = "";
+    $("lockMsg").textContent = state.bossPin
+      ? "Enter your boss PIN to continue."
+      : "First time here — create a PIN so the crew can't poke around in the boss stuff.";
+    $("btnPin").textContent = state.bossPin ? "Unlock" : "Create PIN";
+  }
+  $("btnPin").onclick = function(){
+    var p = $("pinInput").value.trim();
+    if(!state.bossPin){
+      if(p.length < 4){ alert("Make the PIN at least 4 digits!"); return; }
+      state.bossPin = p; save();
+    } else if(p !== state.bossPin){
+      alert("Wrong PIN!");
+      $("pinInput").value = "";
+      return;
+    }
+    $("bossLock").classList.add("hidden");
+    $("bossContent").classList.remove("hidden");
+    renderBoss();
+  };
+  $("btnLock").onclick = function(){ showLock(); };
+
+  // ---- screen router ----
+  var screens = ["scrLogin","scrAcres","scrClockIn","scrClockedIn","scrClockOut"];
+  function show(name){
+    screens.forEach(function(s){ $(s).classList.toggle("hidden", s !== name); });
+  }
+  function route(){
+    if(!state.user){ show("scrLogin"); return; }
+    if(state.active){ showClockOut(); return; }
+    showAcres();
+  }
+
+  // ---- login ----
+  $("btnLogin").onclick = function(){
+    var n = $("loginName").value.trim();
+    if(!n){ alert("Type your name first!"); return; }
+    state.user = n; save(); route();
+  };
+
+  // ---- acres ----
+  function showAcres(){
+    $("whoamiAcres").textContent = "Hey " + state.user + " 👋";
+    renderAcreList(); show("scrAcres");
+  }
+  function renderAcreList(){
+    var box = $("acreList"); box.innerHTML = "";
+    state.acres.forEach(function(a){
+      var b = document.createElement("button");
+      b.className = "acrebtn";
+      b.innerHTML = esc(a.name) + '<span class="val">$' + esc(a.value) + "</span>";
+      b.onclick = function(){ curAcre = a; showClockIn(); };
+      box.appendChild(b);
+    });
+    var nb = document.createElement("button");
+    nb.className = "acrebtn new"; nb.textContent = "＋ New acre";
+    nb.onclick = function(){ $("newAcreForm").classList.toggle("hidden"); };
+    box.appendChild(nb);
+  }
+  $("btnSaveAcre").onclick = function(){
+    var n = $("newAcreName").value.trim(), v = $("newAcreValue").value.trim();
+    if(!n){ alert("Give the acre a name!"); return; }
+    var a = {id:"a"+Date.now(), name:n, value:v || "0"};
+    state.acres.push(a); save();
+    $("newAcreName").value = ""; $("newAcreValue").value = "";
+    $("newAcreForm").classList.add("hidden");
+    renderAcreList();
+  };
+
+  // ---- clock in ----
+  function showClockIn(){
+    $("whoamiIn").textContent = state.user + " · " + curAcre.name + " ($" + curAcre.value + ")";
+    $("clockInAcre").textContent = "🌲 " + curAcre.name;
+    selSaw = null; selDolmar = null; $("inNotes").value = "";
+    renderSaws(); renderDolmar(); show("scrClockIn");
+  }
+  function renderSaws(){
+    var box = $("sawChips"); box.innerHTML = "";
+    state.saws.forEach(function(s){
+      var c = document.createElement("div");
+      c.className = "chip" + (s === selSaw ? " on" : "");
+      c.textContent = s;
+      c.onclick = function(){ selSaw = (selSaw === s) ? null : s; renderSaws(); };
+      box.appendChild(c);
+    });
+  }
+  function renderDolmar(){
+    $("dolmarYes").classList.toggle("on", selDolmar === "yes");
+    $("dolmarNo").classList.toggle("on", selDolmar === "no");
+  }
+  $("dolmarYes").onclick = function(){ selDolmar = (selDolmar === "yes") ? null : "yes"; renderDolmar(); };
+  $("dolmarNo").onclick = function(){ selDolmar = (selDolmar === "no") ? null : "no"; renderDolmar(); };
+
+  $("btnIn").onclick = function(){
+    if(!selSaw){ alert("Pick which saw you're using!"); return; }
+    if(!selDolmar){ alert("Did you take one of the Boss's Dolmars — yes or no?"); return; }
+    var btn = $("btnIn"); btn.disabled = true; btn.textContent = "Saving…";
+    getLoc(function(loc){
+      state.active = {
+        user: state.user, acre: curAcre.name, acreValue: curAcre.value,
+        inTime: Date.now(), inLoc: loc, saw: selSaw, dolmar: selDolmar,
+        inNotes: $("inNotes").value.trim()
+      };
+      save(); btn.disabled = false; btn.textContent = "🟢 CLOCK IN";
+      showClockedIn();
+    });
+  };
+  function showClockedIn(){
+    var a = state.active;
+    $("inConfirm").textContent = "✅ Clocked in at " + fmtTime(a.inTime);
+    $("inDetails").innerHTML =
+      "👤 " + esc(a.user) + "<br>🌲 " + esc(a.acre) + " ($" + esc(a.acreValue) + ")<br>" +
+      "🪚 " + esc(a.saw) + " · Dolmar: " + (a.dolmar === "yes" ? "yes" : "no") +
+      (a.inNotes ? "<br>📝 " + esc(a.inNotes) : "") +
+      (a.inLoc ? '<br><span class="loc">' + locStr(a.inLoc) + "</span>" : "");
+    show("scrClockedIn");
+  }
+
+  // ---- clock out ----
+  function showClockOut(){
+    var a = state.active;
+    $("whoamiOut").textContent = "Hey " + a.user + " 👋";
+    $("outAcre").textContent = "🌲 " + a.acre;
+    $("outSince").textContent = "Clocked in " + fmtDay(todayStr(new Date(a.inTime))) + " at " + fmtTime(a.inTime);
+    selBroke = null; $("outNotes").value = ""; renderBroke();
+    show("scrClockOut");
+  }
+  function renderBroke(){
+    $("brokeYes").classList.toggle("on", selBroke === "yes");
+    $("brokeNo").classList.toggle("on", selBroke === "no");
+  }
+  $("brokeYes").onclick = function(){ selBroke = (selBroke === "yes") ? null : "yes"; renderBroke(); };
+  $("brokeNo").onclick = function(){ selBroke = (selBroke === "no") ? null : "no"; renderBroke(); };
+
+  $("btnOut").onclick = function(){
+    if(!selBroke){ alert("Anything break — yes or no?"); return; }
+    var a = state.active;
+    var btn = $("btnOut"); btn.disabled = true; btn.textContent = "Saving…";
+    getLoc(function(loc){
+      var outTime = Date.now();
+      var hours = (outTime - a.inTime) / 3600000;
+      state.entries.push({
+        day: todayStr(), user: a.user, acre: a.acre, acreValue: a.acreValue,
+        in: a.inTime, out: outTime, hours: Math.round(hours*100)/100,
+        saw: a.saw, dolmar: a.dolmar, inNotes: a.inNotes,
+        broke: selBroke, outNotes: $("outNotes").value.trim(),
+        inLoc: a.inLoc || null, outLoc: loc || null
+      });
+      state.active = null; save();
+      btn.disabled = false; btn.textContent = "🔴 CLOCK OUT";
+      route();
+    });
+  };
+
+  // ---- send day to Kaylee ----
+  function sendDay(){
+    var t = todayStr();
+    var list = state.entries.filter(function(e){ return e.day === t; });
+    if(!list.length){ alert("No entries today yet!"); return; }
+    var lines = ["🌲 CREW CLOCK-IN — " + fmtDay(t), ""];
+    list.forEach(function(e){
+      lines.push(e.user + " | " + e.acre + " ($" + e.acreValue + ")");
+      lines.push("IN  " + fmtTime(e.in) + (e.inLoc ? " " + locStr(e.inLoc) : "") +
+                 " — " + e.saw + " — Dolmar: " + (e.dolmar === "yes" ? "yes" : "no") +
+                 (e.inNotes ? " — " + e.inNotes : ""));
+      lines.push("OUT " + fmtTime(e.out) + (e.outLoc ? " " + locStr(e.outLoc) : "") +
+                 " — Broke: " + (e.broke === "yes" ? "YES" + (e.outNotes ? " (" + e.outNotes + ")" : "") : "no" + (e.outNotes ? " — " + e.outNotes : "")));
+      lines.push("Hours: " + e.hours.toFixed(2));
+      lines.push("");
+    });
+    var text = lines.join("\n");
+    if(navigator.share){ navigator.share({text:text}).catch(function(){}); }
+    else{ window.location.href = "sms:?&body=" + encodeURIComponent(text); }
+  }
+  $("btnSend1").onclick = sendDay;
+  $("btnSend2").onclick = sendDay;
+
+  // ---- boss ----
+  function renderBoss(){
+    $("bossWho").textContent = state.user || "(nobody logged in)";
+    var ab = $("bossAcres"); ab.innerHTML = "";
+    state.acres.forEach(function(a, i){
+      var row = document.createElement("div"); row.className = "sawrow";
+      var inp = document.createElement("input");
+      inp.type = "text"; inp.value = a.name + " ($" + a.value + ")";
+      inp.onchange = function(){
+        var m = inp.value.match(/^(.*)\(\$([\d.,]*)\)\s*$/);
+        if(m){ a.name = m[1].trim(); a.value = m[2].replace(/,/g,""); }
+        else { a.name = inp.value.trim(); }
+        save();
+      };
+      var del = document.createElement("button");
+      del.className = "delbtn"; del.textContent = "✕";
+      del.onclick = function(){ state.acres.splice(i,1); save(); renderBoss(); };
+      row.appendChild(inp); row.appendChild(del); ab.appendChild(row);
+    });
+    var sb = $("sawList"); sb.innerHTML = "";
+    state.saws.forEach(function(s, i){
+      var row = document.createElement("div"); row.className = "sawrow";
+      var inp = document.createElement("input");
+      inp.type = "text"; inp.value = s;
+      inp.onchange = function(){ state.saws[i] = inp.value.trim() || s; save(); };
+      var del = document.createElement("button");
+      del.className = "delbtn"; del.textContent = "✕";
+      del.onclick = function(){
+        if(state.saws.length <= 1){ alert("Keep at least one saw!"); return; }
+        state.saws.splice(i,1); save(); renderBoss();
+      };
+      row.appendChild(inp); row.appendChild(del); sb.appendChild(row);
+    });
+    renderAll();
+  }
+  $("btnAddSaw").onclick = function(){
+    var v = $("newSaw").value.trim(); if(!v) return;
+    state.saws.push(v); $("newSaw").value = ""; save(); renderBoss();
+  };
+  $("btnSwitch").onclick = function(){
+    if(confirm("Log out " + (state.user || "") + "?")){
+      state.user = null; state.active = null; save(); showTab("Crew"); route();
+    }
+  };
+  function renderAll(){
+    var box = $("allList");
+    if(!state.entries.length){ box.innerHTML = '<div class="hint">No entries yet.</div>'; return; }
+    var days = {};
+    state.entries.forEach(function(e){ (days[e.day] = days[e.day] || []).push(e); });
+    box.innerHTML = "";
+    Object.keys(days).sort().reverse().forEach(function(d){
+      var h = document.createElement("div"); h.className = "dayhead"; h.textContent = fmtDay(d);
+      box.appendChild(h);
+      days[d].slice().reverse().forEach(function(e){
+        var dv = document.createElement("div"); dv.className = "entry";
+        dv.innerHTML = "<b>"+esc(e.user)+"</b> — "+e.hours.toFixed(2)+" hrs<br>"+
+          '<div class="meta">'+fmtTime(e.in)+" → "+fmtTime(e.out)+
+          "<br>🌲 "+esc(e.acre)+" ($"+esc(e.acreValue)+")"+
+          "<br>🪚 "+esc(e.saw)+" · Dolmar: "+(e.dolmar==="yes"?"yes":"no")+
+          (e.inNotes ? "<br>📝 In: "+esc(e.inNotes) : "")+
+          "<br>🔧 Broke: "+(e.broke==="yes"?"YES":"no")+(e.outNotes ? " — "+esc(e.outNotes) : "")+
+          (e.inLoc ? '<br><span class="loc">IN '+locStr(e.inLoc)+"</span>" : "")+
+          (e.outLoc ? '<br><span class="loc">OUT '+locStr(e.outLoc)+"</span>" : "")+
+          "</div>";
+        box.appendChild(dv);
+      });
+    });
+  }
+  $("btnClear").onclick = function(){
+    if(confirm("Delete ALL entries on this phone?")){ state.entries = []; save(); renderAll(); }
+  };
+
+  // ---- service worker (offline launch when hosted on https) ----
+  if("serviceWorker" in navigator){
+    try{ navigator.serviceWorker.register("sw.js").catch(function(){}); }catch(e){}
+  }
+
+  route();
+})();
+</script>
+</body>
+</html>
